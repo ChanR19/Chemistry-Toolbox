@@ -1,0 +1,64 @@
+from TextBox import TextBox
+from Button import Button
+from Switch import Switch
+# switch syntax - Switch(x,y,length,width,message, text size)
+# button syntax - Button(x,y,length,width, message, text size)
+# text box syntax - TextBox(x,y,length,width,text size)
+
+pHWeakAcidSwitch = Switch(10,30,170,30,"pH of Weak Acid",20)
+EquationBalanceSwitch = Switch(10,70,170,30,"Balance Equation",20)
+
+PWA_molarity = TextBox(250,40,80,30,20)
+PWA_button = Button(250,150,100,30,"Calculate",20)
+PWA_answer = 0
+PWA_Keq = TextBox(250,110,300,30,20)
+
+EB_equation1 = TextBox(250,40,200,30,20)
+EB_equation2 = TextBox(500,40,200,30,20)
+EB_button = Button(250,80,100,30,"Balance",20)
+EB_answer = "Please enter an equation"
+
+def setup(): 
+    global img
+    img = loadImage("default_pic.png");
+    frameRate(10);
+    size(1000,720);
+
+def draw():
+    background(230)
+    fill(0,0,0)
+    rect(0,0,200,720)
+    pHWeakAcidSwitch.update()
+    EquationBalanceSwitch.update()
+    
+    if pHWeakAcidSwitch.getData() == True:
+        pHWeakSalt()
+    elif EquationBalanceSwitch.getData() == True:
+        balanceEquation()
+    else:
+        default()
+
+def default():
+    image(img, 300, 0);
+
+def pHWeakSalt():
+    global PWA_answer
+    PWA_molarity.update()
+    PWA_button.update()
+    PWA_Keq.update()
+    if PWA_button.getData() == True:
+        PWA_answer = log(1/((-1*float(PWA_Keq.getData())+sqrt(pow(float(PWA_Keq.getData()),2) + 4.0*float(PWA_molarity.getData())*float(PWA_Keq.getData()) ) )/2.0))/log(10)
+    textSize(20)
+    text("Molarity:",250,30)
+    text("Equalibrium constant (Keq):",250,100)
+    text("Answer:",250,210)
+    text(PWA_answer,330,210)
+
+def balanceEquation():
+    EB_equation1.update()
+    EB_equation2.update()
+    EB_button.update()
+    textSize(20)
+    text("->",460,60)
+    text("Answer: ",250,140)
+    text(EB_answer,330,140)
