@@ -23,6 +23,8 @@ T_StrongAcidMolar = TextBox(250,40,200,30,20)
 T_StrongAcidVolume = TextBox(250,110,200,30,20)
 T_StrongBaseMolar = TextBox(250,110,200,30,20)
 T_StrongBaseVolume = TextBox(250,110,200,30,20)
+T_IncrementAmount = TextBox(250,110,200,30,20);
+T_Button = Button(250,110,200,30,"Calculate",20)
 
 def setup(): 
     global img
