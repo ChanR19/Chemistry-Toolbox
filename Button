@@ -1,0 +1,30 @@
+class Button:
+    x = 0
+    y = 0
+    l = 0
+    w = 0
+    t = ""
+    ts = 5
+    clicked = False
+    
+    def __init__(self, xc, yc, le, wi, te,tsz):
+        self.x = xc
+        self.y = yc
+        self.l = le
+        self.w = wi
+        self.t = te
+        self.ts = tsz
+        
+    def update(self):
+        if(mouseX > self.x and mouseX < (self.x+self.l) and mouseY > self.y and mouseY < (self.y+self.w) and mousePressed):
+            self.clicked = True
+        else:
+            self.clicked = False
+        fill(255,255,255);
+        rect(self.x,self.y,self.l,self.w);
+        textSize(self.ts)
+        fill(0,0,0);
+        text(self.t,self.x+5,self.y+self.w-5)
+        
+    def getData(self):
+        return self.clicked
