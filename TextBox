@@ -1,0 +1,42 @@
+class TextBox:
+    selected = False
+    data = ""
+    x = 0
+    y = 0
+    l = 0
+    w = 0
+    ts = 5
+    timer = 5
+    def __init__ (self,xc,yc,le,wi,tsz):
+        self.x = xc
+        self.y = yc
+        self.l = le
+        self.w = wi
+        self.ts = tsz
+        
+    def update(self):
+        if(mouseX > self.x and mouseX < (self.x+self.l) and mouseY > self.y and mouseY < (self.y+self.w) and mousePressed):
+            self.selected = True
+        elif((mouseX < self.x or mouseX > (self.x+self.l) or mouseY < self.y or mouseY > (self.y+self.w)) and mousePressed):
+            self.selected = False
+            
+        if(self.selected == True and keyPressed and self.timer >= 8):
+            self.timer = 0
+            self.data += str(key)
+            if(key == BACKSPACE):
+                self.data = ""
+        if self.timer < 8:
+            self.timer+=1
+        if(self.selected == True):
+            fill(119,136,153);
+        else:
+            fill(255,255,255);
+        rect(self.x,self.y,self.l,self.w)
+        fill(0,0,0)
+        textSize(self.ts)
+        text(self.data,self.x+5,self.y+self.w-5)
+        
+    def getData(self):
+        return self.data
+    
+    
