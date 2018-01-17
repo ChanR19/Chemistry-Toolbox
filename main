@@ -30,7 +30,7 @@ def setup():
     global img,img2
     img = loadImage("default_pic.png");
     img2 = loadImage("av.png");
-    frameRate(10);
+    frameRate(15);
     size(1280,720);
 
 def draw():
@@ -110,13 +110,20 @@ def titration():
         point1 = [0,0]
         point2 = [0,0]
         if i > 0:
-            text("Volume(L) | pH", 500,40)
-            text(str(data[i]), 500,40 + (i * 30))
+            #display data table
+            textSize(20)
+            text("# | Vol(L) | pH", 500,40) 
+            text("---------------",500,55)
+            text((str(i) + " | " + str(data[i][0]) + " | " + str(data[i][1])), 500,40 + (i * 30))
+            #display graph
+            text("Graph:" , 700,100)
             point2 = [data[i][0] * 5000 + 700, 500-(data[i][1]*10 + 80)]
             point1 = [data[i-1][0] * 5000 + 700, 500-(data[i-1][1]*10 + 80)]
-            ellipse(point1[0],point1[1], 5,5)
-            ellipse(point1[0],point1[1], 5,5)
-            line(point1[0],point1[1],point2[0],point2[1])
+            textSize(10)
+            text(i,point1[0] - 10,point1[1] - 5) # label points
+            ellipse(point1[0],point1[1], 5,5) #draw first point
+            ellipse(point2[0],point2[1], 5,5) # draw second point
+            line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
 timer = 0 
 stuff = ""       
 def av():
@@ -134,4 +141,3 @@ def av():
         image(img2, 300, 0)
     textSize(5)
     text(stuff,1000,700)
-    
