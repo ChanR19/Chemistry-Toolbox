@@ -8,6 +8,7 @@ from Switch import Switch
 pHWeakAcidSwitch = Switch(10,30,170,30,"pH Toolbox",20)
 EquationBalanceSwitch = Switch(10,70,170,30,"Balance Equation",20)
 TitrationSwitch = Switch(10,110,170,30,"Titrate",20)
+CombustionAnalysisSwitch = Switch(10,150,170,60,"Combustion \nAnalysis",20)
 
 PWA_molarity = TextBox(250,40,80,30,20)
 PWA_button = Button(250,150,100,30,"Calculate",20)
@@ -26,12 +27,17 @@ T_StrongBaseVolume = TextBox(250,250,200,30,20)
 T_IncrementAmount = TextBox(250,320,200,30,20);
 T_Button = Button(250,390,200,30,"Calculate",20)
 
+CA_H2O = TextBox(250,40,200,30,20)
+CA_CO2 = TextBox(250,110,200,30,20)
+CA_MolarMass = TextBox(250,180,200,30,20)
+CA_InitialMass = TextBox(250,250,200,30,20)
+CA_Button = Button(250,300,200,30,"Calculate",20)
+
 def setup(): 
-    global img,img2
-    img = loadImage("default_pic.png");
-    img2 = loadImage("av.png");
-    frameRate(15);
-    size(1280,720);
+    global img
+    img = loadImage("default_pic.png")
+    frameRate(20)
+    size(1280,720)
 
 def draw():
     background(230)
@@ -41,7 +47,7 @@ def draw():
     pHWeakAcidSwitch.update()
     EquationBalanceSwitch.update()
     TitrationSwitch.update()
-    av()
+    CombustionAnalysisSwitch.update()
     
     if pHWeakAcidSwitch.getData() == True:
         pHWeakSalt()
@@ -49,6 +55,8 @@ def draw():
         balanceEquation()
     elif TitrationSwitch.getData() == True:
         titration()
+    elif CombustionAnalysisSwitch.getData() == True:
+        combustionAnalysis()
     else:
         default()
 
@@ -115,271 +123,337 @@ def titration():
             ellipse(point1[0],point1[1], 5,5) #draw first point
             ellipse(point2[0],point2[1], 5,5) # draw second point
             line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
-            
+        
+empiricalFormula = ""    
+def combustionAnalysis():
+    global empiricalFormula
+    CA_H2O.update()
+    CA_CO2.update()
+    CA_MolarMass.update()
+    CA_Button.update()
+    CA_InitialMass.update()
+    textSize(20)
+    text("Mass of H2O (in grams)",250,30)
+    text("Mass of CO2 (in grams)",250,100)
+    text("Molar mass (not necessary)",250,170)
+    text("Initial Mass (in grams)",250,240)
+    if CA_Button.getData() == True:
+        molesH = float(CA_H2O.getData())/18.015*2
+        molesC = float(CA_CO2.getData())/44.009
+        molesO = (float(CA_InitialMass.getData())-(molesH*1.008+molesC*12.011))/15.999
+        leastMoles = 0
+        if molesH < molesC:
+            leastMoles = molesH
+        else:
+            leastMoles = molesC
+        if molesO < leastMoles:
+            leastMoles = molesO
+        empiricalFormula = "C" + str(molesC/leastMoles) + "H" + str(molesH/leastMoles) + "O" + str(molesO/leastMoles)
+        
+        
+    text("Empirical Formula: "+ str(empiricalFormula),250,370)
+        
+        
+        
+balancedEquation = ""        
 def balanceEquation():
+    global balancedEquation
     EB_equation1.update()
     EB_equation2.update()
     EB_button.update()
     textSize(20)
     text("->",460,60)
-    text("Answer: ",250,140)
-    text(EB_answer,330,140)
-    numOfElements = 0
-
     if EB_button.getData() == True:
-    #Copied from https://stackoverflow.com/questions/147515/least-common-multiple-for-3-or-more-numbers
-    def gcd(a, b):
-        """Return greatest common divisor using Euclid's Algorithm."""
-        while b:      
-            a, b = b, a % b
-        return a
+        balancedEquation = balanceEq()
+    text("Answer: " + str(balancedEquation),250,140)
+    
 
-    def lcm(a, b):
-        """Return lowest common multiple."""
-        return a * b // gcd(a, b)
-
-    def lcmm(args):
-        """Return lcm of args."""   
-        return functools.reduce(lcm, args)
+import functools
+import string
+from fractions import Fraction
+#General idea of program: convert a chemical equation into a system of equations, then use 
+#linear algebra to reduce that matrix into reduced row-echelon form and find solution.
 
 
-    def gauss_jordan(matrix):
+#Declare three utility mathematical functions that will be used later (in the reduction of a matrix to row-echelon form).
 
-        #Got all data. Get in R-E form.
-        currentM = matrix
-        while len(currentM) != 0 and len(currentM[0]) != 0:
-            #Modify currentM, save stuff in matrix.
+def gcd(a, b):
+    
+    #Return greatest common divisor using Euclid's Algorithm.
+    while b:   
+        a, b = b, a % b
+    return a
 
-            #Look at col. If all zeros, ignore. If has a number, shift up to first row (or keep in first row, whatev)
-            #then carry it through each row with a number in it
+def lcm(a, b):
+    
+    #Return least common multiple.
+    return a * b // gcd(a, b)
 
-            col = []
+def lcmm(args):
+    
+    #Recursively apply the lcm function to find the least common multiple of all given ints in args.
+    return functools.reduce(lcm, args)
+
+
+#This function takes a matrix (a list of lists) and reduces it to reduced row-echelon form, where the solution is obvious.
+
+def gauss_jordan(matrix):
+    
+    #currentM will be modified, while matrix will be static for the first half of the function (for ease).
+    currentM = matrix
+    
+    #While currentM is not empty:
+    while len(currentM) != 0 and len(currentM[0]) != 0:
+    
+        #Look at the first column. If it's all zeros, ignore and move on. 
+        #If it contains a non-zero number, shift it up to first row (or keep in first row),
+        #then carry the row switch through each row with a number in it
+    
+        #Construct next column.
+        col = []
+        for row in currentM:
+            col.append(row[0])
+    
+        
+        
+        firstNonZeroRow = -1
+        for index, entry in enumerate(col):
+            if entry.numerator != 0:
+                firstNonZeroRow = index
+                break
+            
+        if firstNonZeroRow == -1:
+            #Remove column and continue.
+            newM = []
             for row in currentM:
-                col.append(row[0])
+                newM.append(row[1:])
+            currentM = newM
+            continue
+    
+        else:
+            
+            #If first nonzero row is not top, make it top. Then, reduce all remaining non-zero numbers in column.
+            
+            #Switch locally.
+            if firstNonZeroRow != 0:
+                temp = currentM[0]
+                currentM[0] = currentM[firstNonZeroRow]
+                currentM[firstNonZeroRow] = temp
+              
+                
+            #Reduce all rows.
+            newCurrent = []
+            
+            #Do first row special, to avoid later looping conflicts.
+            firstRow = currentM[0]
+            firstNum = firstRow[0]
+            temp = []
+            
+            #Reduce numbers.
+            for entry in firstRow:
+                entry /= firstNum
+                temp.append(entry)
+                
+            #Append and end. First row done.
+            newCurrent.append(temp)
+        
+        
+        
+        
+            #Reduce all other rows based off of mathematical relation to already reduced first row. 
+            #For each number in each row, if the first number (in our column of interest) is not clear, then reduction required.
+            for index, row in enumerate(currentM):
+                if index != 0:
+                    firstNum = row[0]
+                    temp = []
+                    
+                    #Reduce row number by number at this level.
+                    for number, entry in zip(newCurrent[0], row):
+                        #Apply mathematical relationship between rows of a matrix to reduce efficiently.
+                        temp.append(entry + (number * (-1 * firstNum)))
+                    newCurrent.append(temp)
+                
+            #newCurrent is now a full replacement for current. Apply our reduction operations globally and locally, and then remove col and row locally,
+            #to allow for looping through a smaller matrix next time, resulting in full reduction at the end of the run.
+            
+            
+            #First, newCurrent needs to be nestled into the bottom right of matrix. That's where we have been changing entries.
+            #i is row number
+            for i in range(len(newCurrent)): 
+                #j is entry
+                for j in range(len(newCurrent[0])): 
+                    #Replace wioth correct numbers.
+                    matrix[len(matrix) - len(newCurrent) + i][len(matrix[0]) - len(newCurrent[0]) + j] = newCurrent[i][j]
+        
+        
+        
+            #Local switch and setup for next iteration.
+            currentM = newCurrent[1:]
+            temp = []
+            for row in currentM:
+                temp.append(row[1:])
+            
+            currentM = temp
+        
+            #Good to loop!
+            continue       
+        
+        
+    #Matrix is in row-echelon form, but not reduced!
+    #So now, reduce it.
+    i = 0
+    while i < len(matrix):
+        
+        position = -1
+        #If there's a leading 1 in this row, get its position.
+        for index, num in enumerate(matrix[i]):
+            
+            if num.numerator != 0:
+                position = index
+                break
+            
+        #If position does equal -1, it's a zero row and doesn't need attention.
+        if position != -1: 
+            
+            for index, row in enumerate(matrix):
+                
+                #Can't reduce a row by itself or you get an invalid 0 row.
+                if  index != i: 
+                    
+                    #A reduction is needed if this is true:
+                    if row[position] != 0:
+                        
+                       
+                        #Create a new temporary row and populate with Fraction zeroes.
+                        newRow = [Fraction(0,1)] * len(row)
+                        
+                        #Synchronize new row.
+                        for ind, num in enumerate(matrix[index]):
+                            newRow[ind] = num
+                        
+                        #Loop and modify each row, similar to the procedure above for achieving row-echelon form.
+                        j = position                        
+                        while j < len(row):
+                            
+                            #Reduction based on mathematical formula proven by author of code.
+                            newRow[j] = row[j] - (matrix[i][j] * Fraction(row[position], matrix[i][position]))
+                            
+                            j += 1
+                            
+                        #Apply change globally.
+                        matrix[index] = newRow
+        
+        #Loop to next row until done!
+        i += 1
+    
+       
+    
 
-            nonZero = False
-            firstNonZeroRow = -1
-            for index, entry in enumerate(col):
-                #print(str(index) + " " + str(entry)) #for debug
-                if entry.numerator != 0:
-                    nonZero = True
-                    firstNonZeroRow = index
-                    break
+#Input text processing takes place here.
+def Numerize(compound):
+    finalResult = []
+    for entry in compound:
+        result = {} #dict
+        currentElement = ""
+        for index, char in enumerate(entry):
+            if char in string.ascii_uppercase:
+                if currentElement == "":
+                    currentElement = char
+                else:
+                 
+                    number = 1
+                    if currentElement[-1].isdigit() and currentElement[-2].isdigit():
 
-            if not nonZero:
-                #Remove column and continue.
-                newM = []
-                for row in currentM:
-                    newM.append(row[1:])
-                currentM = newM
-                continue
-
-            else:
-                #If first nonzero row is not top, make it top. Then, reduce all remaining if not 0 in column.
-                if firstNonZeroRow != 0:
-                    #Switch locally.
-                    temp = currentM[0]
-                    currentM[0] = currentM[firstNonZeroRow]
-                    currentM[firstNonZeroRow] = temp
-
-                    #Switch globally. MAYBE JUST SWITCH ALL AT END
-                    #temp = matrix[len(matrix) - len(col)] #top row in true matrix
-                    #matrix[len(matrix) - len(col)] = matrix[len(matrix) - len(col) + firstNonZeroRow]
-                    #matrix[len(matrix) - len(col) + firstNonZeroRow] = temp
-
-
-
-                #Reduce all rows.
-                newCurrent = []
-                #Do first row special?
-                firstRow = currentM[0]
-                firstNum = firstRow[0]
-                temp = []
-                for entry in firstRow:
-                    entry /= firstNum
-                    temp.append(entry)
-                newCurrent.append(temp)
-
-
-
-                for num, row in enumerate(currentM):
-                    if num != 0:
-                        firstNum = row[0]
-                        temp = []
-                        for number, entry in zip(newCurrent[0], row):
-                            temp.append(entry + (number * (-1 * firstNum)))
-                        newCurrent.append(temp)
-
-                #newCurrent is now a full replacement for current. Switch globally and locally, and then remove col and row locally
-                #Global.
-                #newCurrent needs to be nestled into the bottom right of matrix.
-                for i in range(len(newCurrent)): #i is rows
-                    for j in range(len(newCurrent[0])): #j is entry
-                        matrix[len(matrix) - len(newCurrent) + i][len(matrix[0]) - len(newCurrent[0]) + j] = newCurrent[i][j]
-
-
-
-                #Local.
-                currentM = newCurrent[1:]
-                temp = []
-                for row in currentM:
-                    temp.append(row[1:])
-
-                currentM = temp
-
-                #Good to loop... I think.
-                #print(matrix) #for debug
-                continue
-
-
-
-
-            i += 1
-
-        return True
-
-
-    def reduceToRRE(matrix):
-
-        #Matrix is in RE form. Not reduced!
-        #So now, reduce it.
-        i = 0
-        while i < len(matrix):
-
-            position = -1
-            #If there's a leading 1 in this row, get its position
-            for index, num in enumerate(matrix[i]):
-                #print("Num: " + str(num))
-                if num.numerator != 0:
-                    position = index
-                    break
-
-
-            #print(str(position))
-
-            if position != -1: #If it does equal -1, it's a zero row and we don't care
-                #newM = []
-                #for q, row in enumerate(matrix):
-                 #   line = []
-                  #  for w, num in enumerate(row):
-                   #     line.append(num)
-                    #newM.append(line)
-                #print(newM)
-                for index, row in enumerate(matrix):
-                    #newR = []
-                    if  index != i: #Can't reduce a row by itself or you get 0 row
-                        if row[position].numerator != 0:
-                            j = position
-                            while j < len(row):
-                                #print(str(row[position]))
-                                if row[j].numerator != 0:
-                                    matrix[index][j] -= matrix[i][j] * Fraction(row[j].denominator, row[j].numerator) #TODO divide by 0
-
-                                j += 1
-                    #newM.append(newR)
-            i += 1
-
-
-
-        return True 
-
-
-    #Do my text processing plz and thx
-    def Numerize(compound):
-        finalResult = []
-        for entry in compound:
-            result = {} #dict
-            currentElement = ""
-            for index, char in enumerate(entry):
-                if char in string.ascii_uppercase:
-                    if currentElement == "":
-                        currentElement = char
+                        #Two-digit number!
+                        numberOnes = int(currentElement[-1])
+                        numberTens = int(currentElement[-2])
+                        number = (numberTens * 10) + numberOnes
+                        currentElement = currentElement[:len(currentElement) - 2]
+                    elif currentElement[-1].isdigit():
+                        #One-digit number only.
+                        number = int(currentElement[-1])
+                        currentElement = currentElement[:len(currentElement) - 1]
+                    
+                    if currentElement in result:
+                        result[currentElement] += number
                     else:
+                        result[currentElement] = number
+                    currentElement = char
+            else:
+                currentElement += char 
+        
+        number = 1
+        if currentElement[-1].isdigit() and currentElement[-2].isdigit():
 
-                        number = 1
-                        if currentElement[-1].isdigit():
-                            number = int(currentElement[-1])
-                            currentElement = currentElement[:len(currentElement) - 1]
-
-                        if currentElement in result:
-                            result[currentElement] += number
-                        else:
-                            result[currentElement] = number
-                        currentElement = char
-                else:
-                    currentElement += char 
-
-            number = 1
-            if currentElement[-1].isdigit():
-                number = int(currentElement[-1]) #TODO TWO DIGIT
-                if currentElement[0:len(currentElement) - 1] in result:
-                    result[currentElement[0:len(currentElement) - 1]] += number
-                else:
-                    result[currentElement[0:len(currentElement) - 1]] = number
-
-            else: #just a letter here, num 1 understood
-                if currentElement in result:
-                    result[currentElement] += number
-                else:
-                    result[currentElement] = number
-
-            finalResult.append(result)
-
-
-        return finalResult
-
-
-    def generateList(side):
-
-        #side is a list of dicts
-        result = []
-
-        for dic in side:
-            for key in dic:
-                if key not in result:
-                    result.append(key)      
-
-
-        return result
+            numberOnes = int(currentElement[-1])
+            numberTens = int(currentElement[-2])
+            number = (numberTens * 10) + numberOnes
+            if currentElement[0:len(currentElement) - 2] in result:
+                result[currentElement[0:len(currentElement) - 2]] += number
+            else:
+                result[currentElement[0:len(currentElement) - 2]] = number
+        elif currentElement[-1].isdigit():
+            number = int(currentElement[-1]) #TODO TWO DIGIT
+            if currentElement[0:len(currentElement) - 1] in result:
+                result[currentElement[0:len(currentElement) - 1]] += number
+            else:
+                result[currentElement[0:len(currentElement) - 1]] = number
+                
+        else: #just a letter here, num 1 understood
+            if currentElement in result:
+                result[currentElement] += number
+            else:
+                result[currentElement] = number
+       
+        finalResult.append(result)
+            
+    
+    return finalResult
 
 
 
+#Utility method, to generate a standard ordering of chemicals based on a given list of dictionaries (the input).
+#Output: A list of strings, in a random order, that can arbitrarily be declared a standard order.
+
+def generateList(side):
+
+    result = []
+    
+    #Simple loop through the input, inspection and assignment to result only.
+    for dic in side:
+        for key in dic:
+            if key not in result:
+                result.append(key)      
+    
+    
+    return result
+
+
+
+
+#Where the magic happens, and all the code is tied together.
+def balanceEq():
+    
     #GET INPUT HERE --------------------------------------------------------------------------------------------------
-    equation = input()
-
-
-
-
-
-
-
-
-    sides = equation.split("=")
-    partsL = sides[0].split("+")
-    partsR = sides[1].split("+")
-
+    partsL = EB_equation1.getData().split("+")
+    partsR = EB_equation2.getData().split("+")
+    
     #We have compounds. Make a system of equations.
-
+    
     #Make lists of lists. Each list has [element, num] for each compound
-
+    
     elementsL = Numerize(partsL)
     elementsR = Numerize(partsR)
-
-    #print(elementsL)
-    #print(elementsR)
-
-
+    
+    
+    
     #Alright, assume Numerize worked. We have dicts for each compound in elementsL and elementsR.
-
-    modL = elementsL
-    modR = elementsR
-
-    template = generateList(modL)
-    #print(template)
-
+    
+    template = generateList(elementsL)
+    
     arL = []
     arR = []
-
+    
     for compound in elementsL:
         column = []
         for element in template:
@@ -388,9 +462,9 @@ def balanceEquation():
             else:
                 column.append(Fraction(0,1))
         arL.append(column)
-
-
-
+        
+    
+        
     for compound in elementsR:
         column = []
         for element in template:
@@ -399,11 +473,10 @@ def balanceEquation():
             else:
                 column.append(Fraction(0,1))
         arR.append(column)
+        
+        
 
-
-    #print(arL)
-    #print(arR)
-
+    
     #Construct transpose of true matrix.
     trueArT = arL
     for col in arR:
@@ -411,75 +484,63 @@ def balanceEquation():
         for num in col:
             newCol.append(num * -1)
         trueArT.append(newCol)
-
-    #Take transpose of trueArT
+        
+        
+    #Take transpose of trueArT to get trueAr
     trueAr = []
-
+    
     i = 0
     while i < len(trueArT[0]):
-
+        
         newRow = []
         for row in trueArT:
             newRow.append(row[i])
-
+            
         trueAr.append(newRow)
-
+        
         i += 1
+    
+    
+    
+    
+    
+    
+    
+    #trueAr is in the right form.
+    #Just reduce to reduced row-echelon form, and solving is simple!
+    
+    
 
-
-    #print(trueAr)
-
-
-
-
-
-    #trueAr is in the right form
-    #RE time
-
-
-    m = trueAr
-    valid = gauss_jordan(m)
-    #print(m)
-    #print(valid)
-
-
-
-
-
-    valid2 = reduceToRRE(m)
-    #print(m)
-
-
-    #In reduced R-E form! TODO
+    gauss_jordan(trueAr)
+    
+    #In reduced R-E form! Solve and output!
     lastDenoms = []
     lastFracts = []
-    for row in m:
+    for row in trueAr:
         lastDenoms.append(row[-1].denominator)
         lastFracts.append(-1 * row[-1])
-
+    
     #Find lowest scalar mult that makes lastNum contain only ints
     scalarMult = lcmm(lastDenoms)
-    #print(scalarMult)
-
+    
     coefs = []
     for fract in lastFracts:
         if fract.numerator != 0:
             coefs.append(int(fract * scalarMult))
-
+        
     coefs.append(scalarMult)
-    #print(coefs)
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
     #Output result!
     out = ""
     i = 0
     while i < len(coefs):
-
+        
         if i < len(partsL):
             if i != 0:
                 out += "+"
@@ -492,14 +553,7 @@ def balanceEquation():
                 out += "+"
             out += str(coefs[i])
             out += partsR[i - len(partsL)]
-
-
+            
+        
         i += 1
-
-
-
-
-    #PRINT RESULT HERE ----------------------------------------------------------------------------------
-    print(out)
-
-
+    return out
