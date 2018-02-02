@@ -27,7 +27,8 @@ class Switch:
         rect(self.x,self.y,self.l,self.w);
         fill(0,0,0);
         textSize(self.ts);
-        text(self.t,self.x+5,self.y+self.w-5);
+        text(self.t,self.x+5,self.y+22);
             
     def getData(self):
         return self.switchedOn
+                   
