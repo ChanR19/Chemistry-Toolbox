@@ -6,7 +6,7 @@ class TextBox:
     l = 0
     w = 0
     ts = 5
-    timer = 5
+    timer = 0
     def __init__ (self,xc,yc,le,wi,tsz):
         self.x = xc
         self.y = yc
@@ -22,7 +22,10 @@ class TextBox:
             
         if(self.selected == True and keyPressed and self.timer >= 8):
             self.timer = 0
-            self.data += str(key)
+            if(str(key) == "65535"):
+                self.data += str(key).upper().replace("65535","")
+            else:
+                self.data += str(key)
             if(key == BACKSPACE):
                 self.data = ""
         if self.timer < 8:
@@ -38,5 +41,6 @@ class TextBox:
         
     def getData(self):
         return self.data
+    
     
     
