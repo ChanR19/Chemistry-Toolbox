@@ -5,15 +5,10 @@ from Switch import Switch
 # button syntax - Button(x,y,length,width, message, text size)
 # text box syntax - TextBox(x,y,length,width,text size)
 
-pHWeakAcidSwitch = Switch(10,30,170,30,"pH Toolbox",20)
+pHToolBoxSwitch = Switch(10,30,170,30,"pH Toolbox",20)
 EquationBalanceSwitch = Switch(10,70,170,30,"Balance Equation",20)
 TitrationSwitch = Switch(10,110,170,30,"Titrate",20)
 CombustionAnalysisSwitch = Switch(10,150,170,60,"Combustion \nAnalysis",20)
-
-PWA_molarity = TextBox(250,40,80,30,20)
-PWA_button = Button(250,150,100,30,"Calculate",20)
-PWA_answer = 0
-PWA_Keq = TextBox(250,110,300,30,20)
 
 EB_equation1 = TextBox(250,40,200,30,20)
 EB_equation2 = TextBox(500,40,200,30,20)
@@ -29,9 +24,9 @@ T_Button = Button(250,390,200,30,"Calculate",20)
 
 CA_H2O = TextBox(250,40,200,30,20)
 CA_CO2 = TextBox(250,110,200,30,20)
-CA_MolarMass = TextBox(250,180,200,30,20)
-CA_InitialMass = TextBox(250,250,200,30,20)
-CA_Button = Button(250,300,200,30,"Calculate",20)
+#CA_MolarMass = TextBox(250,180,200,30,20)
+CA_InitialMass = TextBox(250,180,200,30,20)
+CA_Button = Button(250,230,250,30,"Calculate",20)
 
 def setup(): 
     global img
@@ -44,13 +39,13 @@ def draw():
     fill(0,0,0)
     rect(0,0,200,720)
     
-    pHWeakAcidSwitch.update()
+    pHToolBoxSwitch.update()
     EquationBalanceSwitch.update()
     TitrationSwitch.update()
     CombustionAnalysisSwitch.update()
     
-    if pHWeakAcidSwitch.getData() == True:
-        pHWeakSalt()
+    if pHToolBoxSwitch.getData() == True:
+        pHToolBox()
     elif EquationBalanceSwitch.getData() == True:
         balanceEquation()
     elif TitrationSwitch.getData() == True:
@@ -63,18 +58,52 @@ def draw():
 def default():
     image(img, 300, 0);
 
-def pHWeakSalt():
-    global PWA_answer
+PWA_molarity = TextBox(250,80,80,30,20)
+PWA_button = Button(250,190,150,30,"Calculate Acid",20)
+PWB_button = Button(400,190,150,30,"Calculate Base",20)
+PWA_Keq = TextBox(250,150,300,30,20)
+pH_answer = 0
+
+MWA_pH = TextBox(250,360,80,30,20)
+MWA_button = Button(250,460,150,30,"Calculate Acid",20)
+MWB_button = Button(400,460,150,30,"Calculate Base",20)
+MWA_Keq = TextBox(250,420,300,30,20)
+molarity_answer = 0
+
+def pHToolBox():
+    global pH_answer,molarity_answer
     PWA_molarity.update()
     PWA_button.update()
     PWA_Keq.update()
+    PWB_button.update()
     if PWA_button.getData() == True:
-        PWA_answer = log(1/((-1*float(PWA_Keq.getData())+sqrt(pow(float(PWA_Keq.getData()),2) + 4.0*float(PWA_molarity.getData())*float(PWA_Keq.getData()) ) )/2.0))/log(10)
+        pH_answer = log(1/((-1*float(PWA_Keq.getData())+sqrt(pow(float(PWA_Keq.getData()),2) + 4.0*float(PWA_molarity.getData())*float(PWA_Keq.getData()) ) )/2.0))/log(10)
+    elif PWB_button.getData() == True:
+        pH_answer = 14 - log(1/((-1*float(PWA_Keq.getData())+sqrt(pow(float(PWA_Keq.getData()),2) + 4.0*float(PWA_molarity.getData())*float(PWA_Keq.getData()) ) )/2.0))/log(10)
     textSize(20)
-    text("Molarity:",250,30)
-    text("Equalibrium constant (Keq):",250,100)
-    text("Answer:",250,210)
-    text(PWA_answer,330,210)
+    text("Calculate pH from Weak Acid or Base Concentration",250,30)
+    line(250,40,700,40)
+    text("Molarity (moles per liter):",250,70)
+    text("Equalibrium constant (Keq):",250,140)
+    text("pH:",250,250)
+    text(pH_answer,300,250)
+
+    MWA_pH.update()
+    MWA_button.update()
+    MWA_Keq.update()
+    MWB_button.update()
+    if MWA_button.getData() == True:    
+        molarity_answer = ((4*pow(( 1/pow( 10, float(MWA_pH.getData()) ) ),2) )/float(MWA_Keq.getData())) + (pow((1/pow(10,float(MWA_pH.getData()))),2))
+    elif MWB_button.getData() == True:
+        molarity_answer = 0 #NOT DONE YET
+    textSize(20)
+    text("Calculate Concentration of Weak Acid or Base Needed for a pH",250,300)
+    line(250,310,700,310)
+    text("pH:",250,340)
+    text("Equalibrium constant (Keq):",250,410)
+    text("Molarity (moles per liter):",250,520)
+    text(molarity_answer,530,520)
+    
        
 data = [[0,0]]
 def titration():
@@ -124,19 +153,20 @@ def titration():
             ellipse(point2[0],point2[1], 5,5) # draw second point
             line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
         
-empiricalFormula = ""    
+exactEmpiricalFormula = ""  
+empiricalFormula = ""  
 def combustionAnalysis():
-    global empiricalFormula
+    global exactEmpiricalFormula, empiricalFormula
     CA_H2O.update()
     CA_CO2.update()
-    CA_MolarMass.update()
+    #CA_MolarMass.update()
     CA_Button.update()
     CA_InitialMass.update()
     textSize(20)
     text("Mass of H2O (in grams)",250,30)
     text("Mass of CO2 (in grams)",250,100)
-    text("Molar mass (not necessary)",250,170)
-    text("Initial Mass (in grams)",250,240)
+    #text("Molar mass (not necessary)",250,170)
+    text("Initial Mass (in grams)",250,170)
     if CA_Button.getData() == True:
         molesH = float(CA_H2O.getData())/18.015*2
         molesC = float(CA_CO2.getData())/44.009
@@ -148,13 +178,15 @@ def combustionAnalysis():
             leastMoles = molesC
         if molesO < leastMoles:
             leastMoles = molesO
-        empiricalFormula = "C" + str(molesC/leastMoles) + "H" + str(molesH/leastMoles) + "O" + str(molesO/leastMoles)
+        exactEmpiricalFormula = "C" + str(molesC/leastMoles) + "H" + str(molesH/leastMoles) + "O" + str(molesO/leastMoles)
+        empiricalFormula = "C" + str(int(molesC/leastMoles)) + "H" + str(int(molesH/leastMoles)) + "O" + str(int(molesO/leastMoles))
         
         
-    text("Empirical Formula: "+ str(empiricalFormula),250,370)
+    text("Exact Empirical Formula: "+ exactEmpiricalFormula,250,300)
+    text("Empirical Formula: "+ empiricalFormula,250,330)
         
         
-        
+#Equation Balancer Start        
 balancedEquation = ""        
 def balanceEquation():
     global balancedEquation
@@ -166,8 +198,6 @@ def balanceEquation():
     if EB_button.getData() == True:
         balancedEquation = balanceEq()
     text("Answer: " + str(balancedEquation),250,140)
-    
-
 import functools
 import string
 from fractions import Fraction
@@ -178,25 +208,21 @@ from fractions import Fraction
 #Declare three utility mathematical functions that will be used later (in the reduction of a matrix to row-echelon form).
 
 def gcd(a, b):
-    
     #Return greatest common divisor using Euclid's Algorithm.
     while b:   
         a, b = b, a % b
     return a
 
 def lcm(a, b):
-    
     #Return least common multiple.
     return a * b // gcd(a, b)
 
 def lcmm(args):
-    
     #Recursively apply the lcm function to find the least common multiple of all given ints in args.
     return functools.reduce(lcm, args)
 
 
 #This function takes a matrix (a list of lists) and reduces it to reduced row-echelon form, where the solution is obvious.
-
 def gauss_jordan(matrix):
     
     #currentM will be modified, while matrix will be static for the first half of the function (for ease).
@@ -230,10 +256,8 @@ def gauss_jordan(matrix):
             currentM = newM
             continue
     
-        else:
-            
-            #If first nonzero row is not top, make it top. Then, reduce all remaining non-zero numbers in column.
-            
+        else:            
+            #If first nonzero row is not top, make it top. Then, reduce all remaining non-zero numbers in column.            
             #Switch locally.
             if firstNonZeroRow != 0:
                 temp = currentM[0]
@@ -257,9 +281,6 @@ def gauss_jordan(matrix):
             #Append and end. First row done.
             newCurrent.append(temp)
         
-        
-        
-        
             #Reduce all other rows based off of mathematical relation to already reduced first row. 
             #For each number in each row, if the first number (in our column of interest) is not clear, then reduction required.
             for index, row in enumerate(currentM):
@@ -275,8 +296,7 @@ def gauss_jordan(matrix):
                 
             #newCurrent is now a full replacement for current. Apply our reduction operations globally and locally, and then remove col and row locally,
             #to allow for looping through a smaller matrix next time, resulting in full reduction at the end of the run.
-            
-            
+                        
             #First, newCurrent needs to be nestled into the bottom right of matrix. That's where we have been changing entries.
             #i is row number
             for i in range(len(newCurrent)): 
@@ -345,10 +365,6 @@ def gauss_jordan(matrix):
         
         #Loop to next row until done!
         i += 1
-    
-       
-    
-
 #Input text processing takes place here.
 def Numerize(compound):
     finalResult = []
@@ -406,19 +422,13 @@ def Numerize(compound):
                 result[currentElement] = number
        
         finalResult.append(result)
-            
-    
     return finalResult
-
-
 
 #Utility method, to generate a standard ordering of chemicals based on a given list of dictionaries (the input).
 #Output: A list of strings, in a random order, that can arbitrarily be declared a standard order.
 
 def generateList(side):
-
-    result = []
-    
+    result = []    
     #Simple loop through the input, inspection and assignment to result only.
     for dic in side:
         for key in dic:
@@ -428,25 +438,15 @@ def generateList(side):
     
     return result
 
-
-
-
 #Where the magic happens, and all the code is tied together.
 def balanceEq():
-    
     #GET INPUT HERE --------------------------------------------------------------------------------------------------
     partsL = EB_equation1.getData().split("+")
-    partsR = EB_equation2.getData().split("+")
-    
-    #We have compounds. Make a system of equations.
-    
-    #Make lists of lists. Each list has [element, num] for each compound
-    
+    partsR = EB_equation2.getData().split("+")    
+    #We have compounds. Make a system of equations.    
+    #Make lists of lists. Each list has [element, num] for each compound    
     elementsL = Numerize(partsL)
-    elementsR = Numerize(partsR)
-    
-    
-    
+    elementsR = Numerize(partsR)    
     #Alright, assume Numerize worked. We have dicts for each compound in elementsL and elementsR.
     
     template = generateList(elementsL)
@@ -461,10 +461,7 @@ def balanceEq():
                 column.append(Fraction(compound[element],1))
             else:
                 column.append(Fraction(0,1))
-        arL.append(column)
-        
-    
-        
+        arL.append(column)    
     for compound in elementsR:
         column = []
         for element in template:
@@ -472,11 +469,7 @@ def balanceEq():
                 column.append(Fraction(compound[element],1))
             else:
                 column.append(Fraction(0,1))
-        arR.append(column)
-        
-        
-
-    
+        arR.append(column)    
     #Construct transpose of true matrix.
     trueArT = arL
     for col in arR:
@@ -499,20 +492,9 @@ def balanceEq():
         trueAr.append(newRow)
         
         i += 1
-    
-    
-    
-    
-    
-    
-    
     #trueAr is in the right form.
     #Just reduce to reduced row-echelon form, and solving is simple!
-    
-    
-
     gauss_jordan(trueAr)
-    
     #In reduced R-E form! Solve and output!
     lastDenoms = []
     lastFracts = []
@@ -530,17 +512,10 @@ def balanceEq():
         
     coefs.append(scalarMult)
     
-    
-    
-    
-    
-    
-    
     #Output result!
     out = ""
     i = 0
-    while i < len(coefs):
-        
+    while i < len(coefs):        
         if i < len(partsL):
             if i != 0:
                 out += "+"
@@ -552,8 +527,7 @@ def balanceEq():
             else:
                 out += "+"
             out += str(coefs[i])
-            out += partsR[i - len(partsL)]
-            
-        
+            out += partsR[i - len(partsL)]                
         i += 1
     return out
+#Equation Balancer End
