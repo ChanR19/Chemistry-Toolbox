@@ -9,6 +9,7 @@ pHToolBoxSwitch = Switch(10,30,170,30,"pH Toolbox",20)
 EquationBalanceSwitch = Switch(10,70,170,30,"Balance Equation",20)
 TitrationSwitch = Switch(10,110,170,30,"Titrate",20)
 CombustionAnalysisSwitch = Switch(10,150,170,60,"Combustion \nAnalysis",20)
+RateGraphSwitch = Switch(10,220,170,30,"Rate Graph",20)
 
 EB_equation1 = TextBox(250,40,200,30,20)
 EB_equation2 = TextBox(500,40,200,30,20)
@@ -31,7 +32,7 @@ CA_Button = Button(250,230,250,30,"Calculate",20)
 def setup(): 
     global img
     img = loadImage("default_pic.png")
-    frameRate(20)
+    frameRate(10)
     size(1280,720)
 
 def draw():
@@ -43,6 +44,7 @@ def draw():
     EquationBalanceSwitch.update()
     TitrationSwitch.update()
     CombustionAnalysisSwitch.update()
+    RateGraphSwitch.update()
     
     if pHToolBoxSwitch.getData() == True:
         pHToolBox()
@@ -52,6 +54,8 @@ def draw():
         titration()
     elif CombustionAnalysisSwitch.getData() == True:
         combustionAnalysis()
+    elif RateGraphSwitch.getData() == True:
+        rate_graph()
     else:
         default()
 
@@ -184,6 +188,33 @@ def combustionAnalysis():
         
     text("Exact Empirical Formula: "+ exactEmpiricalFormula,250,300)
     text("Empirical Formula: "+ empiricalFormula,250,330)
+    
+add_input_button = Button(250,30,200,30,"Add Input Boxes",20)
+delete_input_button = Button(450,30,200,30,"Delete Input Boxes",20)
+graph_button = Button(650,30,120,30,"Graph",20)
+concentration_text_boxes = [TextBox(250,110,100,30,20)]
+time_text_boxes = [TextBox(450,110,100,30,20)]
+text_box_y = 160
+def rate_graph():
+    global text_box_y
+    add_input_button.update()
+    graph_button.update()
+    delete_input_button.update()
+    text("Concentration",250,90)
+    text("Time",450, 90)
+    if add_input_button.getData() == True:
+        concentration_text_boxes.append(TextBox(250,text_box_y,100,30,20))
+        time_text_boxes.append(TextBox(450,text_box_y,100,30,20))
+        text_box_y += 50
+    elif delete_input_button.getData() == True:
+        concentration_text_boxes.pop(len(concentration_text_boxes) - 1)
+        time_text_boxes.pop(len(time_text_boxes) - 1)
+        text_box_y -= 50
+        
+    for text_box in concentration_text_boxes: #update text boxes
+        text_box.update()
+    for text_box in time_text_boxes:
+        text_box.update()
         
         
 #Equation Balancer Start        
