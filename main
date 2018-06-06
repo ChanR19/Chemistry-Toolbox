@@ -1,6 +1,7 @@
 from TextBox import TextBox
 from Button import Button
 from Switch import Switch
+import math
 # switch syntax - Switch(x,y,length,width,message, text size)
 # button syntax - Button(x,y,length,width, message, text size)
 # text box syntax - TextBox(x,y,length,width,text size)
@@ -10,28 +11,10 @@ EquationBalanceSwitch = Switch(10,70,170,30,"Balance Equation",20)
 TitrationSwitch = Switch(10,110,170,30,"Titrate",20)
 CombustionAnalysisSwitch = Switch(10,150,170,60,"Combustion \nAnalysis",20)
 RateGraphSwitch = Switch(10,220,170,30,"Rate Graph",20)
-
-EB_equation1 = TextBox(250,40,200,30,20)
-EB_equation2 = TextBox(500,40,200,30,20)
-EB_button = Button(250,80,100,30,"Balance",20)
-EB_answer = "Please enter an equation"
-
-T_StrongAcidMolar = TextBox(250,40,200,30,20)
-T_StrongAcidVolume = TextBox(250,110,200,30,20)
-T_StrongBaseMolar = TextBox(250,180,200,30,20)
-T_StrongBaseVolume = TextBox(250,250,200,30,20)
-T_IncrementAmount = TextBox(250,320,200,30,20);
-T_Button = Button(250,390,200,30,"Calculate",20)
-
-CA_H2O = TextBox(250,40,200,30,20)
-CA_CO2 = TextBox(250,110,200,30,20)
-#CA_MolarMass = TextBox(250,180,200,30,20)
-CA_InitialMass = TextBox(250,180,200,30,20)
-CA_Button = Button(250,230,250,30,"Calculate",20)
+ResolvingVectorsSwitch = Switch(10,300,170,60,"Resolving \nVectors",20)
+VectorDotProductSwitch = Switch(10,370,170,60,"Vector Dot\nProduct",20)
 
 def setup(): 
-    global img
-    img = loadImage("default_pic.png")
     frameRate(10)
     size(1280,720)
 
@@ -45,6 +28,8 @@ def draw():
     TitrationSwitch.update()
     CombustionAnalysisSwitch.update()
     RateGraphSwitch.update()
+    ResolvingVectorsSwitch.update()
+    VectorDotProductSwitch.update()
     
     if pHToolBoxSwitch.getData() == True:
         pHToolBox()
@@ -56,11 +41,10 @@ def draw():
         combustionAnalysis()
     elif RateGraphSwitch.getData() == True:
         rate_graph()
-    else:
-        default()
-
-def default():
-    image(img, 300, 0);
+    elif ResolvingVectorsSwitch.getData() == True:
+        resolving_vectors()
+    elif VectorDotProductSwitch.getData() == True:
+        vector_dot_product()
 
 PWA_molarity = TextBox(250,80,80,30,20)
 PWA_button = Button(250,190,150,30,"Calculate Acid",20)
@@ -68,14 +52,14 @@ PWB_button = Button(400,190,150,30,"Calculate Base",20)
 PWA_Keq = TextBox(250,150,300,30,20)
 pH_answer = 0
 
-MWA_pH = TextBox(250,360,80,30,20)
-MWA_button = Button(250,460,150,30,"Calculate Acid",20)
-MWB_button = Button(400,460,150,30,"Calculate Base",20)
-MWA_Keq = TextBox(250,420,300,30,20)
-molarity_answer = 0
+B_acid = TextBox(250,360,80,30,20)
+B_conjugate_base = TextBox(250,420,300,30,20)
+B_pKa = TextBox(350,360,120,30,20)
+B_button = Button(250,460,230,30,"Calculate pH of Buffer",20)
+B_pH_answer = 0
 
 def pHToolBox():
-    global pH_answer,molarity_answer
+    global pH_answer,molarity_answer,B_pH_answer
     PWA_molarity.update()
     PWA_button.update()
     PWA_Keq.update()
@@ -92,23 +76,27 @@ def pHToolBox():
     text("pH:",250,250)
     text(pH_answer,300,250)
 
-    MWA_pH.update()
-    MWA_button.update()
-    MWA_Keq.update()
-    MWB_button.update()
-    if MWA_button.getData() == True:    
-        molarity_answer = ((4*pow(( 1/pow( 10, float(MWA_pH.getData()) ) ),2) )/float(MWA_Keq.getData())) + (pow((1/pow(10,float(MWA_pH.getData()))),2))
-    elif MWB_button.getData() == True:
-        molarity_answer = 0 #NOT DONE YET
+    B_acid.update()
+    B_conjugate_base.update()
+    B_pKa.update()
+    B_button.update()
+    if B_button.getData() == True:    
+        B_pH_answer = float(B_pKa.getData())+math.log10(float(B_acid.getData())/float(B_conjugate_base.getData()))
     textSize(20)
-    text("Calculate Concentration of Weak Acid or Base Needed for a pH",250,300)
+    text("Calculate pH of a Buffer",250,300)
     line(250,310,700,310)
-    text("pH:",250,340)
-    text("Equalibrium constant (Keq):",250,410)
-    text("Molarity (moles per liter):",250,520)
-    text(molarity_answer,530,520)
+    text("Acid:",250,340)
+    text("Conjugate Base:",350,340)
+    text("pKa:",250,410)
+    text("pH:",250,530)
+    text(B_pH_answer,300,530)
     
-       
+T_StrongAcidMolar = TextBox(250,40,200,30,20)
+T_StrongAcidVolume = TextBox(250,110,200,30,20)
+T_StrongBaseMolar = TextBox(250,180,200,30,20)
+T_StrongBaseVolume = TextBox(250,250,200,30,20)
+T_IncrementAmount = TextBox(250,320,200,30,20);
+T_Button = Button(250,390,200,30,"Calculate",20)
 data = [[0,0]]
 def titration():
     T_StrongAcidMolar.update()
@@ -157,13 +145,18 @@ def titration():
             ellipse(point2[0],point2[1], 5,5) # draw second point
             line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
         
+#Combustion Analysis Start
+CA_H2O = TextBox(250,40,200,30,20)
+CA_CO2 = TextBox(250,110,200,30,20)
+#CA_MolarMass = TextBox(250,180,200,30,20)
+CA_InitialMass = TextBox(250,180,200,30,20)
+CA_Button = Button(250,230,250,30,"Calculate",20)
 exactEmpiricalFormula = ""  
 empiricalFormula = ""  
 def combustionAnalysis():
     global exactEmpiricalFormula, empiricalFormula
     CA_H2O.update()
     CA_CO2.update()
-    #CA_MolarMass.update()
     CA_Button.update()
     CA_InitialMass.update()
     textSize(20)
@@ -188,36 +181,180 @@ def combustionAnalysis():
         
     text("Exact Empirical Formula: "+ exactEmpiricalFormula,250,300)
     text("Empirical Formula: "+ empiricalFormula,250,330)
+#Combustion Analysis End
     
-add_input_button = Button(250,30,200,30,"Add Input Boxes",20)
-delete_input_button = Button(450,30,200,30,"Delete Input Boxes",20)
+#Rate Graph Start
+RG_add_input_button = Button(250,30,200,30,"Add Input Boxes",20)
+RG_delete_input_button = Button(450,30,200,30,"Delete Input Boxes",20)
 graph_button = Button(650,30,120,30,"Graph",20)
 concentration_text_boxes = [TextBox(250,110,100,30,20)]
 time_text_boxes = [TextBox(450,110,100,30,20)]
-text_box_y = 160
+molarity_to_time = []
+ln_molarity_to_time = []
+one_over_molarity_to_time = []
+RG_text_box_y = 140
 def rate_graph():
-    global text_box_y
-    add_input_button.update()
+    global RG_text_box_y,molarity_to_time,concentration_text_boxes,time_text_boxes,one_over_molarity_to_time,ln_molarity_to_time
+    RG_add_input_button.update()
     graph_button.update()
-    delete_input_button.update()
+    RG_delete_input_button.update()
     text("Concentration",250,90)
     text("Time",450, 90)
-    if add_input_button.getData() == True:
-        concentration_text_boxes.append(TextBox(250,text_box_y,100,30,20))
-        time_text_boxes.append(TextBox(450,text_box_y,100,30,20))
-        text_box_y += 50
-    elif delete_input_button.getData() == True:
+    text("[A] to time (if this is straight, it is 0 order):" , 800,50)
+    text("ln[A] to time (if this is straight, it is 1st order):" , 800,220)
+    text("1/[A] to time (if this is straight, it is 2nd order):" , 800,440)
+    if RG_add_input_button.getData() == True:
+        concentration_text_boxes.append(TextBox(250,RG_text_box_y,100,30,20))
+        time_text_boxes.append(TextBox(450,RG_text_box_y,100,30,20))
+        RG_text_box_y += 30
+    elif RG_delete_input_button.getData() == True:
         concentration_text_boxes.pop(len(concentration_text_boxes) - 1)
         time_text_boxes.pop(len(time_text_boxes) - 1)
-        text_box_y -= 50
+        RG_text_box_y -= 30
         
     for text_box in concentration_text_boxes: #update text boxes
         text_box.update()
     for text_box in time_text_boxes:
         text_box.update()
         
+    if graph_button.getData() == True:   
+        molarity_to_time = []     
+        ln_molarity_to_time = []
+        one_over_molarity_to_time = []
+        for i in range(len(concentration_text_boxes)):
+            molarity_to_time.append([float(concentration_text_boxes[i].getData()),float(time_text_boxes[i].getData())])
+            ln_molarity_to_time.append([log(float(concentration_text_boxes[i].getData())),float(time_text_boxes[i].getData())])
+            one_over_molarity_to_time.append([1/float(concentration_text_boxes[i].getData()),float(time_text_boxes[i].getData())])
         
+    for i in range(len(molarity_to_time)):
+        point1 = [0,0]
+        point2 = [0,0]
+        if i > 0:
+            #display molarity to time graph
+            point2 = [800+molarity_to_time[i][1]*20, 200-(molarity_to_time[i][0])*100]
+            point1 = [800+molarity_to_time[i-1][1]*20, 200-(molarity_to_time[i-1][0])*100]
+            ellipse(point1[0],point1[1], 5,5) #draw first point
+            ellipse(point2[0],point2[1], 5,5) # draw second point
+            line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
+            
+            #display natural log molarity to time graph
+            point2 = [800+ln_molarity_to_time[i][1]*20, 200-(ln_molarity_to_time[i][0])*100]
+            point1 = [800+ln_molarity_to_time[i-1][1]*20, 200-(ln_molarity_to_time[i-1][0])*100]
+            ellipse(point1[0],point1[1], 5,5) #draw first point
+            ellipse(point2[0],point2[1], 5,5) # draw second point
+            line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
+
+            #display one over molarity to time graph
+            point2 = [800+one_over_molarity_to_time[i][1]*20, 720-(one_over_molarity_to_time[i][0])*20]
+            point1 = [800+one_over_molarity_to_time[i-1][1]*20, 720-(one_over_molarity_to_time[i-1][0])*20]
+            ellipse(point1[0],point1[1], 5,5) #draw first point
+            ellipse(point2[0],point2[1], 5,5) # draw second point
+            line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
+#Rate Graph End
+            
+#Resolving Vectors Start
+RV_add_input_button = Button(250,30,200,30,"Add Input Boxes",20)
+RV_delete_input_button = Button(450,30,200,30,"Delete Input Boxes",20)
+RV_calculate_button = Button(650,30,120,30,"Calculate",20)
+RV_magnitude_text_boxes = [TextBox(250,110,100,30,20)]
+RV_direction_text_boxes = [TextBox(450,110,100,30,20)]
+RV_text_box_y = 140
+RV_x_answers = []
+RV_y_answers = []
+RV_z_answers = []
+RV_sum = 0
+def resolving_vectors():
+    global RV_magnitude_text_boxes,RV_direction_text_boxes,RV_text_box_y,RV_x_answers,RV_y_answers,RV_z_answers
+    RV_add_input_button.update()
+    graph_button.update()
+    RV_delete_input_button.update()
+    RV_calculate_button.update()
+    text("Magnitude",250,90)
+    text("Direction",450, 90)
+    text("X",620,90)
+    text("Y",720,90)
+    text("Z",820,90)
+    
+    if RV_add_input_button.getData() == True:
+        RV_magnitude_text_boxes.append(TextBox(250,RV_text_box_y,100,30,20))
+        RV_direction_text_boxes.append(TextBox(450,RV_text_box_y,100,30,20))
+        RV_text_box_y += 30
+    elif RV_delete_input_button.getData() == True:
+        RV_magnitude_text_boxes.pop(len(RV_magnitude_text_boxes) - 1)
+        RV_direction_text_boxes.pop(len(RV_direction_text_boxes) - 1)
+        RV_text_box_y -= 30
+    
+    for text_box in RV_magnitude_text_boxes: #update text boxes
+        text_box.update()
+    for text_box in RV_direction_text_boxes:
+        text_box.update()
+        
+    if RV_calculate_button.getData() == True:
+        RV_x_answers = []
+        RV_y_answers = []
+        RV_z_answers = []
+        for i in range(len(RV_magnitude_text_boxes)):
+            RV_x_answers.append(float(RV_magnitude_text_boxes[i].getData())*math.cos(int(RV_direction_text_boxes[i].getData())))
+            RV_y_answers.append(float(RV_magnitude_text_boxes[i].getData())*math.sin(int(RV_direction_text_boxes[i].getData())))
+            inside = pow(float(RV_magnitude_text_boxes[i].getData()),2)-pow(RV_x_answers[i],2)-pow(RV_y_answers[i],2)
+            RV_z_answers.append(pow( inside, .333))
+      
+    if len(RV_x_answers) > 0: 
+        last_index = 0   
+        for i in range(len(RV_x_answers)):
+            text(RV_x_answers[i],600,140+i*30)
+            text(RV_y_answers[i],700,140+i*30)
+            text(RV_z_answers[i],800,140+i*30)
+            last_index = i
+        text("Totals:",450,170+last_index*30)
+        text(sum(RV_x_answers),600,170+last_index*30)
+        text(sum(RV_y_answers),700,170+last_index*30)
+        text(sum(RV_z_answers),800,170+last_index*30)
+#Resolving Vectors End
+        
+#Vector Dot Product Start
+VDP_x1 = TextBox(250,40,100,30,20)
+VDP_x2 = TextBox(250,110,100,30,20)
+VDP_y1 = TextBox(380,40,100,30,20)
+VDP_y2 = TextBox(380,110,100,30,20)
+VDP_button = Button(250,180,250,30,"Calculate",20)
+VDP_magnitude1 = 0
+VDP_magnitude2 = 0
+VDP_direction = 0
+VDP_dot_product = 0
+def vector_dot_product():
+    global VDP_magnitude1,VDP_direction,VDP_dot_product,VDP_magnitude2
+    VDP_x1.update()
+    VDP_x2.update()
+    VDP_y1.update()
+    VDP_y2.update()
+    VDP_button.update()
+    text("X1",250,30)
+    text("Y1",380,30)
+    text("X2",250,100)
+    text("Y2",380,100)
+    text("Magnitude 1:",250,250)
+    text("Magnitude 2:",250,280)
+    text("Direction:",250,310)
+    text("Dot Product:",250,340)
+    
+    if VDP_button.getData() == True:
+        VDP_magnitude1 = sqrt(pow(int(VDP_x1.getData()),2) + pow(int(VDP_y1.getData()),2))
+        VDP_magnitude2 = sqrt(pow(int(VDP_x2.getData()),2) + pow(int(VDP_y2.getData()),2))
+        VDP_direction = math.asin(int(VDP_y2.getData())/VDP_magnitude2) - math.asin(int(VDP_y1.getData())/VDP_magnitude1)
+        VDP_dot_product = abs(int(VDP_x1.getData())*int(VDP_x2.getData())*int(VDP_y1.getData())*int(VDP_y2.getData())) * math.cos(VDP_direction)
+    
+    text(VDP_magnitude1,400,250)
+    text(VDP_magnitude2,400,280)
+    text(VDP_direction,400,310)
+    text(VDP_dot_product,400,340)
+#Vector Dot Product End
+    
 #Equation Balancer Start        
+EB_equation1 = TextBox(250,40,200,30,20)
+EB_equation2 = TextBox(500,40,200,30,20)
+EB_button = Button(250,80,100,30,"Balance",20)
+EB_answer = "Please enter an equation"
 balancedEquation = ""        
 def balanceEquation():
     global balancedEquation
@@ -271,8 +408,6 @@ def gauss_jordan(matrix):
         for row in currentM:
             col.append(row[0])
     
-        
-        
         firstNonZeroRow = -1
         for index, entry in enumerate(col):
             if entry.numerator != 0:
