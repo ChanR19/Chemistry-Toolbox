@@ -1,7 +1,11 @@
+import math
+
 from TextBox import TextBox
 from Button import Button
 from Switch import Switch
-import math
+
+from VectorDotProduct import VectorDotProduct
+
 # switch syntax - Switch(x,y,length,width,message, text size)
 # button syntax - Button(x,y,length,width, message, text size)
 # text box syntax - TextBox(x,y,length,width,text size)
@@ -13,6 +17,8 @@ CombustionAnalysisSwitch = Switch(10,150,170,60,"Combustion \nAnalysis",20)
 RateGraphSwitch = Switch(10,220,170,30,"Rate Graph",20)
 ResolvingVectorsSwitch = Switch(10,300,170,60,"Resolving \nVectors",20)
 VectorDotProductSwitch = Switch(10,370,170,60,"Vector Dot\nProduct",20)
+
+VDP = VectorDotProduct()
 
 def setup(): 
     frameRate(10)
@@ -44,7 +50,7 @@ def draw():
     elif ResolvingVectorsSwitch.getData() == True:
         resolving_vectors()
     elif VectorDotProductSwitch.getData() == True:
-        vector_dot_product()
+        VDP.update()
 
 PWA_molarity = TextBox(250,80,80,30,20)
 PWA_button = Button(250,190,150,30,"Calculate Acid",20)
@@ -251,104 +257,6 @@ def rate_graph():
             ellipse(point2[0],point2[1], 5,5) # draw second point
             line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
 #Rate Graph End
-            
-#Resolving Vectors Start
-RV_add_input_button = Button(250,30,200,30,"Add Input Boxes",20)
-RV_delete_input_button = Button(450,30,200,30,"Delete Input Boxes",20)
-RV_calculate_button = Button(650,30,120,30,"Calculate",20)
-RV_magnitude_text_boxes = [TextBox(250,110,100,30,20)]
-RV_direction_text_boxes = [TextBox(450,110,100,30,20)]
-RV_text_box_y = 140
-RV_x_answers = []
-RV_y_answers = []
-RV_z_answers = []
-RV_sum = 0
-def resolving_vectors():
-    global RV_magnitude_text_boxes,RV_direction_text_boxes,RV_text_box_y,RV_x_answers,RV_y_answers,RV_z_answers
-    RV_add_input_button.update()
-    graph_button.update()
-    RV_delete_input_button.update()
-    RV_calculate_button.update()
-    text("Magnitude",250,90)
-    text("Direction",450, 90)
-    text("X",620,90)
-    text("Y",720,90)
-    text("Z",820,90)
-    
-    if RV_add_input_button.getData() == True:
-        RV_magnitude_text_boxes.append(TextBox(250,RV_text_box_y,100,30,20))
-        RV_direction_text_boxes.append(TextBox(450,RV_text_box_y,100,30,20))
-        RV_text_box_y += 30
-    elif RV_delete_input_button.getData() == True:
-        RV_magnitude_text_boxes.pop(len(RV_magnitude_text_boxes) - 1)
-        RV_direction_text_boxes.pop(len(RV_direction_text_boxes) - 1)
-        RV_text_box_y -= 30
-    
-    for text_box in RV_magnitude_text_boxes: #update text boxes
-        text_box.update()
-    for text_box in RV_direction_text_boxes:
-        text_box.update()
-        
-    if RV_calculate_button.getData() == True:
-        RV_x_answers = []
-        RV_y_answers = []
-        RV_z_answers = []
-        for i in range(len(RV_magnitude_text_boxes)):
-            RV_x_answers.append(float(RV_magnitude_text_boxes[i].getData())*math.cos(int(RV_direction_text_boxes[i].getData())))
-            RV_y_answers.append(float(RV_magnitude_text_boxes[i].getData())*math.sin(int(RV_direction_text_boxes[i].getData())))
-            inside = pow(float(RV_magnitude_text_boxes[i].getData()),2)-pow(RV_x_answers[i],2)-pow(RV_y_answers[i],2)
-            RV_z_answers.append(pow( inside, .333))
-      
-    if len(RV_x_answers) > 0: 
-        last_index = 0   
-        for i in range(len(RV_x_answers)):
-            text(RV_x_answers[i],600,140+i*30)
-            text(RV_y_answers[i],700,140+i*30)
-            text(RV_z_answers[i],800,140+i*30)
-            last_index = i
-        text("Totals:",450,170+last_index*30)
-        text(sum(RV_x_answers),600,170+last_index*30)
-        text(sum(RV_y_answers),700,170+last_index*30)
-        text(sum(RV_z_answers),800,170+last_index*30)
-#Resolving Vectors End
-        
-#Vector Dot Product Start
-VDP_x1 = TextBox(250,40,100,30,20)
-VDP_x2 = TextBox(250,110,100,30,20)
-VDP_y1 = TextBox(380,40,100,30,20)
-VDP_y2 = TextBox(380,110,100,30,20)
-VDP_button = Button(250,180,250,30,"Calculate",20)
-VDP_magnitude1 = 0
-VDP_magnitude2 = 0
-VDP_direction = 0
-VDP_dot_product = 0
-def vector_dot_product():
-    global VDP_magnitude1,VDP_direction,VDP_dot_product,VDP_magnitude2
-    VDP_x1.update()
-    VDP_x2.update()
-    VDP_y1.update()
-    VDP_y2.update()
-    VDP_button.update()
-    text("X1",250,30)
-    text("Y1",380,30)
-    text("X2",250,100)
-    text("Y2",380,100)
-    text("Magnitude 1:",250,250)
-    text("Magnitude 2:",250,280)
-    text("Direction:",250,310)
-    text("Dot Product:",250,340)
-    
-    if VDP_button.getData() == True:
-        VDP_magnitude1 = sqrt(pow(int(VDP_x1.getData()),2) + pow(int(VDP_y1.getData()),2))
-        VDP_magnitude2 = sqrt(pow(int(VDP_x2.getData()),2) + pow(int(VDP_y2.getData()),2))
-        VDP_direction = math.asin(int(VDP_y2.getData())/VDP_magnitude2) - math.asin(int(VDP_y1.getData())/VDP_magnitude1)
-        VDP_dot_product = abs(int(VDP_x1.getData())*int(VDP_x2.getData())*int(VDP_y1.getData())*int(VDP_y2.getData())) * math.cos(VDP_direction)
-    
-    text(VDP_magnitude1,400,250)
-    text(VDP_magnitude2,400,280)
-    text(VDP_direction,400,310)
-    text(VDP_dot_product,400,340)
-#Vector Dot Product End
     
 #Equation Balancer Start        
 EB_equation1 = TextBox(250,40,200,30,20)
