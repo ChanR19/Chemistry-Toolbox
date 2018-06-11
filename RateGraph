@@ -1,0 +1,70 @@
+from TextBox import TextBox
+from Button import Button
+from Switch import Switch
+    
+class RateGraph:
+    add_input_button = Button(250,30,200,30,"Add Input Boxes",20)
+    delete_input_button = Button(450,30,200,30,"Delete Input Boxes",20)
+    graph_button = Button(650,30,120,30,"Graph",20)
+    concentration_text_boxes = [TextBox(250,110,100,30,20)]
+    time_text_boxes = [TextBox(450,110,100,30,20)]
+    molarity_to_time = []
+    ln_molarity_to_time = []
+    one_over_molarity_to_time = []
+    text_box_y = 140
+    def update(self):
+        self.add_input_button.update()
+        self.graph_button.update()
+        self.delete_input_button.update()
+        text("Concentration",250,90)
+        text("Time",450, 90)
+        text("[A] to time (if this is straight, it is 0 order):" , 800,50)
+        text("ln[A] to time (if this is straight, it is 1st order):" , 800,220)
+        text("1/[A] to time (if this is straight, it is 2nd order):" , 800,440)
+        if self.add_input_button.getData() == True:
+            self.concentration_text_boxes.append(TextBox(250,self.text_box_y,100,30,20))
+            self.time_text_boxes.append(TextBox(450,self.text_box_y,100,30,20))
+            self.text_box_y += 30
+        elif self.delete_input_button.getData() == True:
+            self.concentration_text_boxes.pop(len(self.concentration_text_boxes) - 1)
+            self.time_text_boxes.pop(len(self.time_text_boxes) - 1)
+            self.text_box_y -= 30
+            
+        for text_box in self.concentration_text_boxes: #update text boxes
+            text_box.update()
+        for text_box in self.time_text_boxes:
+            text_box.update()
+            
+        if self.graph_button.getData() == True:   
+            self.molarity_to_time = []     
+            self.ln_molarity_to_time = []
+            self.one_over_molarity_to_time = []
+            for i in range(len(self.concentration_text_boxes)):
+                self.molarity_to_time.append([float(self.concentration_text_boxes[i].getData()),float(self.time_text_boxes[i].getData())])
+                self.ln_molarity_to_time.append([log(float(self.concentration_text_boxes[i].getData())),float(self.time_text_boxes[i].getData())])
+                self.one_over_molarity_to_time.append([1/float(self.concentration_text_boxes[i].getData()),float(self.time_text_boxes[i].getData())])
+            
+        for i in range(len(self.molarity_to_time)):
+            point1 = [0,0]
+            point2 = [0,0]
+            if i > 0:
+                #display molarity to time graph
+                point2 = [800+self.molarity_to_time[i][1]*20, 200-(self.molarity_to_time[i][0])*100]
+                point1 = [800+self.molarity_to_time[i-1][1]*20, 200-(self.molarity_to_time[i-1][0])*100]
+                ellipse(point1[0],point1[1], 5,5) #draw first point
+                ellipse(point2[0],point2[1], 5,5) # draw second point
+                line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
+                
+                #display natural log molarity to time graph
+                point2 = [800+self.ln_molarity_to_time[i][1]*20, 200-(self.ln_molarity_to_time[i][0])*100]
+                point1 = [800+self.ln_molarity_to_time[i-1][1]*20, 200-(self.ln_molarity_to_time[i-1][0])*100]
+                ellipse(point1[0],point1[1], 5,5) #draw first point
+                ellipse(point2[0],point2[1], 5,5) # draw second point
+                line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
+    
+                #display one over molarity to time graph
+                point2 = [800+self.one_over_molarity_to_time[i][1]*20, 720-(self.one_over_molarity_to_time[i][0])*20]
+                point1 = [800+self.one_over_molarity_to_time[i-1][1]*20, 720-(self.one_over_molarity_to_time[i-1][0])*20]
+                ellipse(point1[0],point1[1], 5,5) #draw first point
+                ellipse(point2[0],point2[1], 5,5) # draw second point
+                line(point1[0],point1[1],point2[0],point2[1]) #connect points with a line
