@@ -15,6 +15,7 @@ class VectorDotProduct:
     direction = 0
     dot_product = 0
     def update(self):
+        #update input boxes, button, and show text
         self.x1.update()
         self.x2.update()
         self.y1.update()
@@ -29,12 +30,14 @@ class VectorDotProduct:
         text("Direction:",250,310)
         text("Dot Product:",250,340)
         
+        #If the Calculate button is pressed, calculate values
         if self.button.getData() == True:
             self.magnitude1 = sqrt(pow(int(self.x1.getData()),2) + pow(int(self.y1.getData()),2))
             self.magnitude2 = sqrt(pow(int(self.x2.getData()),2) + pow(int(self.y2.getData()),2))
             self.direction = math.asin(int(self.y2.getData())/self.magnitude2) - math.asin(int(self.y1.getData())/self.magnitude1)
             self.dot_product = abs(int(self.x1.getData())*int(self.x2.getData())*int(self.y1.getData())*int(self.y2.getData())) * math.cos(self.direction)
         
+        #display answers
         text(self.magnitude1,400,250)
         text(self.magnitude2,400,280)
         text(self.direction,400,310)
