@@ -1,3 +1,2 @@
 # Chemistry-Toolbox
-Uses Processing.py
-To use it, go to: https://processing.org/download/
+Uses Processing.py (https://processing.org/)
